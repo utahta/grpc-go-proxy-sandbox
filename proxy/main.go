@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/encoding/proto"
@@ -105,6 +106,16 @@ func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 	}
 }
 
+func OneStreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	fmt.Println("interceptor: 1")
+	return handler(srv, ss)
+}
+
+func TwoStreamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	fmt.Println("interceptor: 2")
+	return handler(srv, ss)
+}
+
 func main() {
 	customCodec := newCodec()
 
@@ -121,6 +132,10 @@ func main() {
 	s := grpc.NewServer(
 		grpc.CustomCodec(customCodec),
 		grpc.UnknownServiceHandler(ProxyHandler(conn)),
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+			OneStreamInterceptor,
+			TwoStreamInterceptor,
+		)),
 	)
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
