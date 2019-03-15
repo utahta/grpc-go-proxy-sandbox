@@ -59,7 +59,7 @@ func (c *codec) String() string {
 	return c.Name()
 }
 
-func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
+func UnaryProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 	return func(_ interface{}, serverStream grpc.ServerStream) error {
 		method, ok := grpc.MethodFromServerStream(serverStream)
 		if !ok {
@@ -74,30 +74,20 @@ func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 
-		clientStream, err := conn.NewStream(ctx, &grpc.StreamDesc{ServerStreams: false, ClientStreams: false}, method)
-		if err != nil {
-			return err
-		}
+		m := &frame{}
 
-		var (
-			m = &frame{}
-		)
 		// client -> proxy
-		if err = serverStream.RecvMsg(m); err != nil {
+		if err := serverStream.RecvMsg(m); err != nil {
 			return err
 		}
 
 		// proxy -> server
-		if err := clientStream.SendMsg(m); err != nil {
+		// proxy <- server
+		if err := conn.Invoke(ctx, method, m, m); err != nil {
 			return err
 		}
 
-		// server -> proxy
-		if err := clientStream.RecvMsg(m); err != nil {
-			return err
-		}
-
-		// proxy -> client
+		// client <- proxy
 		if err := serverStream.SendMsg(m); err != nil {
 			return err
 		}
@@ -131,7 +121,7 @@ func main() {
 	}
 	s := grpc.NewServer(
 		grpc.CustomCodec(customCodec),
-		grpc.UnknownServiceHandler(ProxyHandler(conn)),
+		grpc.UnknownServiceHandler(UnaryProxyHandler(conn)),
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			OneStreamInterceptor,
 			TwoStreamInterceptor,
