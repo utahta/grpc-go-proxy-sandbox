@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/encoding/proto"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -65,8 +66,12 @@ func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 		}
 		fmt.Printf("%v\n", method)
 
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(serverStream.Context())
 		defer cancel()
+
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			ctx = metadata.NewOutgoingContext(ctx, md)
+		}
 
 		clientStream, err := conn.NewStream(ctx, &grpc.StreamDesc{ServerStreams: false, ClientStreams: false}, method)
 		if err != nil {

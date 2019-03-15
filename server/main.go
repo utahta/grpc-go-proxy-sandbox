@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
 	"github.com/utahta/grpc-go-proxy-example/helloworld"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -18,6 +20,10 @@ type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		fmt.Printf("Incoming: abe %v\n", md.Get("abe")[0])
+	}
+
 	log.Printf("Received: %v\n", in.Name)
 	return &helloworld.HelloReply{Message: "Hello " + in.Name}, nil
 }

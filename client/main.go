@@ -8,6 +8,7 @@ import (
 
 	"github.com/utahta/grpc-go-proxy-example/helloworld"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -31,6 +32,9 @@ func main() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("abe", "hiroshi"))
+
 	r, err := c.SayHello(ctx, &helloworld.HelloRequest{Name: name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
