@@ -67,10 +67,10 @@ func UnaryProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 		}
 		fmt.Printf("%v\n", method)
 
-		ctx, cancel := context.WithCancel(serverStream.Context())
+		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if md, ok := metadata.FromIncomingContext(serverStream.Context()); ok {
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 
