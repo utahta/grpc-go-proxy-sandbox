@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func newCodec() grpc.Codec {
+func newCodec() *codec {
 	return &codec{
 		parentCodec: encoding.GetCodec(proto.Name),
 	}
@@ -103,7 +103,7 @@ func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 func main() {
 	customCodec := newCodec()
 
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.CallCustomCodec(customCodec)))
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.ForceCodec(customCodec)))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
