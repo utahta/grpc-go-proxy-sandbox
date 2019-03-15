@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net"
 
@@ -69,37 +68,32 @@ func ProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		clientStream, err := conn.NewStream(ctx, &grpc.StreamDesc{ServerStreams: true, ClientStreams: true}, method)
+		clientStream, err := conn.NewStream(ctx, &grpc.StreamDesc{ServerStreams: false, ClientStreams: false}, method)
 		if err != nil {
 			return err
 		}
 
-		for {
-			m := &frame{}
-			if err = serverStream.RecvMsg(m); err != nil {
-				if err == io.EOF {
-					break
-				}
-				return err
-			}
-
-			if err := clientStream.SendMsg(m); err != nil {
-				return err
-			}
+		var (
+			m = &frame{}
+		)
+		// client -> proxy
+		if err = serverStream.RecvMsg(m); err != nil {
+			return err
 		}
 
-		for {
-			m := &frame{}
-			if err := clientStream.RecvMsg(m); err != nil {
-				if err == io.EOF {
-					break
-				}
-				return err
-			}
+		// proxy -> server
+		if err := clientStream.SendMsg(m); err != nil {
+			return err
+		}
 
-			if err := serverStream.SendMsg(m); err != nil {
-				return err
-			}
+		// server -> proxy
+		if err := clientStream.RecvMsg(m); err != nil {
+			return err
+		}
+
+		// proxy -> client
+		if err := serverStream.SendMsg(m); err != nil {
+			return err
 		}
 
 		return nil
