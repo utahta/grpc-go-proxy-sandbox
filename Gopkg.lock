@@ -119,6 +119,7 @@
     "google.golang.org/grpc",
     "google.golang.org/grpc/encoding",
     "google.golang.org/grpc/encoding/proto",
+    "google.golang.org/grpc/metadata",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
