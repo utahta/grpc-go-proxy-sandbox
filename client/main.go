@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -33,6 +34,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	fmt.Println("Outgoing: abe hiroshi")
 	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("abe", "hiroshi"))
 
 	r, err := c.SayHello(ctx, &helloworld.HelloRequest{Name: name})
