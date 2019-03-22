@@ -20,6 +20,10 @@ type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	if t, ok := ctx.Deadline(); ok {
+		fmt.Printf("in DEADLINE: %v\n", t)
+	}
+
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		fmt.Printf("Incoming: abe %v\n", md.Get("abe")[0])
 	}

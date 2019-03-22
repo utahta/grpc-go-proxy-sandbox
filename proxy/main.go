@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/encoding/proto"
@@ -61,13 +61,17 @@ func (c *codec) String() string {
 
 func UnaryProxyHandler(conn *grpc.ClientConn) grpc.StreamHandler {
 	return func(_ interface{}, serverStream grpc.ServerStream) error {
+		if t, ok := serverStream.Context().Deadline(); ok {
+			fmt.Printf("in DEADLINE: %v\n", t)
+		}
+
 		method, ok := grpc.MethodFromServerStream(serverStream)
 		if !ok {
 			return fmt.Errorf("unknown method")
 		}
 		fmt.Printf("%v\n", method)
 
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(serverStream.Context())
 		defer cancel()
 
 		if md, ok := metadata.FromIncomingContext(serverStream.Context()); ok {
