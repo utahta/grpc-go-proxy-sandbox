@@ -1,9 +1,9 @@
-# grpc-go-proxy-example
+# grpc-go-proxy-sandbox
 
 ## Install
 
 ```sh 
-$ dep ensure
+$ go mod download
 ```
 
 ## Run

@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/utahta/grpc-go-proxy-example/helloworld"
+	"github.com/utahta/grpc-go-proxy-sandbox/helloworld"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
